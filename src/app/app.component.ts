@@ -4,6 +4,8 @@ import { NgbActiveModal, NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstra
 import { AppModalForm } from './app.modal.form';
 import { AppCommonService } from './app.common.service';
 import { FormObject } from './formObject';
+import { FormBuilder, FormGroup } from '@angular/forms';
+import { UploadService } from './upload.service';
 
 @Component({
   selector: 'app-root',
@@ -26,30 +28,59 @@ export class AppComponent implements OnInit {
   private data: any[];
   private activeModalRef: NgbModalRef;
 
+  form: FormGroup;
+  error: string;
+  selectedFileList: FileList;
+  selectedFile:  File; 
+  uploadResponse = { status: '', message: '', filePath: '' };
+  formData = [];
+
   private formObject: FormObject
 
   title = 'BRAVO';
   constructor(
     private modalService: NgbModal,
-    private appCommonService: AppCommonService
-    ) {
+    private appCommonService: AppCommonService,
+    private formBuilder: FormBuilder,
+    private uploadService: UploadService
+  ) {
     //called first time before the ngOnInit()
   }
 
   ngOnInit() {
     //called after the constructor and called  after the first ngOnChanges() 
+
+    /** Form upload code start **/
+
+    this.appCommonService.getFormData().subscribe( 
+      (data : any[]) => {
+        console.log(JSON.stringify(data));
+        this.data = data;
+        this.rowData = this.data.filter(e => e.tag == 'Published');
+      },
+      error => {
+        console.log(error);
+      }
+    );
+
+    this.form = this.formBuilder.group({
+      file: ['']
+    });
+
+    /** Form upload code end **/
+
     this.selectedFormType = "Published";
     this.appCommonService.submitFormData.subscribe((data) => {
       try {
 
-        switch(data['key']) {
+        switch (data['key']) {
           case "SaveToDraft": {
             data['data'].tag = "Draft";
             console.log(data['data']);
             data['data'].id === -1 ? this.data.push(data['data']) : console.log('Record saved to draft ...!');
             this.rowData = this.data.filter(e => e.tag == 'Draft');
             this.selectedFormType = data['data'].tag;
-            this.activeModalRef.close();      
+            this.activeModalRef.close();
             break;
           }
           case "SubmitOrUpdate": {
@@ -66,10 +97,10 @@ export class AppComponent implements OnInit {
           }
         }
 
-      } catch(e) {
+      } catch (e) {
         console.error(e);
       }
-      
+
     });
 
     this.formTypes = [
@@ -78,30 +109,30 @@ export class AppComponent implements OnInit {
       "Draft"
     ];
 
-    this.data = [
-      { id: 1, tag:'Published', make: 'Toyota', model: 'Celica', price: 35000 },
-      { id: 2, tag:'Published', make: 'Ford', model: 'Mondeo', price: 32000 },
-      { id: 3, tag:'Published', make: 'Porsche', model: 'Boxter', price: 72000 },
-      { id: 4, tag:'InProgress', make: 'InProcess-Audi', model: 'A9', price: 69000 },
-      { id: 5, tag:'InProgress', make: 'InProcess-Jaguar', model: 'Jaguar XF', price: 89000 },
-      { id: 6, tag:'Draft', make: 'Draft-Maruti Suzuki', model: 'Vitara Brezza', price: 98000 }
-    ];
+    // this.data = [
+    //   { id: 1, tag: 'Published', make: 'Toyota', model: 'Celica', price: 35000 },
+    //   { id: 2, tag: 'Published', make: 'Ford', model: 'Mondeo', price: 32000 },
+    //   { id: 3, tag: 'Published', make: 'Porsche', model: 'Boxter', price: 72000 },
+    //   { id: 4, tag: 'InProgress', make: 'InProcess-Audi', model: 'A9', price: 69000 },
+    //   { id: 5, tag: 'InProgress', make: 'InProcess-Jaguar', model: 'Jaguar XF', price: 89000 },
+    //   { id: 6, tag: 'Draft', make: 'Draft-Maruti Suzuki', model: 'Vitara Brezza', price: 98000 }
+    // ];
 
     this.columnDefs = [
       {
         headerName: 'Make', field: 'make',
         headerCheckboxSelection: true,
         headerCheckboxSelectionFilteredOnly: true,
-        checkboxSelection: true 
+        checkboxSelection: true
       },
-      {headerName: 'Model', field: 'model' },
-      {headerName: 'Price', field: 'price'}
+      { headerName: 'Model', field: 'model' },
+      { headerName: 'Price', field: 'price' }
     ];
 
-    this.rowData = this.data.filter(e => e.tag == 'Published');
+    // this.rowData = this.data.filter(e => e.tag == 'Published');
     this.rowSelection = "multiple";
     this.editType = "fullRow";
-  } 
+  }
 
   onFilterTextBoxChanged(event) {
     console.log(event);
@@ -112,15 +143,15 @@ export class AppComponent implements OnInit {
     console.log(event.target.value);
     this.selectedFormType = event.target.value;
 
-    switch(this.selectedFormType) {
+    switch (this.selectedFormType) {
       case "Draft": {
         this.rowData = this.data.filter(e => e.tag == 'Draft');
         break;
-      } 
+      }
       case "InProgress": {
         this.rowData = this.data.filter(e => e.tag == 'InProgress');
         break;
-      } 
+      }
       case "Published": {
         this.rowData = this.data.filter(e => e.tag == 'Published');
         break;
@@ -135,7 +166,7 @@ export class AppComponent implements OnInit {
 
   onSelectionChanged() {
     var selectedRows = this.gridApi.getSelectedRows();
-    this.activeModalRef = this.modalService.open(AppModalForm);
+    this.activeModalRef = this.modalService.open(AppModalForm, { size: 'lg', backdrop: 'static' });
     this.formObject = selectedRows[0];
     this.activeModalRef.componentInstance.formObject = this.formObject;
   }
@@ -145,7 +176,7 @@ export class AppComponent implements OnInit {
     this.formObject = new FormObject();
     this.formObject.setId(-1);
     this.formObject.setTag('Draft');
-    this.formObject.setMake('');   
+    this.formObject.setMake('');
     this.formObject.setModel('');
     this.formObject.setPrice('');
     this.activeModalRef.componentInstance.formObject = this.formObject;
@@ -154,8 +185,8 @@ export class AppComponent implements OnInit {
   removeRows() {
     var selectedRows = this.gridApi.getSelectedRows();
 
-    for(let i=0; selectedRows.length>i; i++){
-      this.data.splice(this.data.indexOf(selectedRows[i]),1);
+    for (let i = 0; selectedRows.length > i; i++) {
+      this.data.splice(this.data.indexOf(selectedRows[i]), 1);
       //this.data.filter(e => e.id == selectedRows[i].id).length > 0 ? this.data.splice(i,1) : console.log("Nothing record deleted..!");
     }
     this.rowData = this.data.filter(e => e.tag == this.selectedFormType);
@@ -176,5 +207,25 @@ export class AppComponent implements OnInit {
     //     this.rowData = data;
     //   });
   }
+
+      /** Form upload code start **/
+
+      onFileChange(event) {
+        if (event.target.files.length > 0) {
+          this.selectedFile = event.target.files[0];
+        }
+      }
+    
+      onSubmit() {
+        const formData = new FormData();
+        formData.append('file', this.selectedFile);
+    
+        this.uploadService.upload(formData).subscribe(
+          (res) => this.uploadResponse = res,
+          (err) => this.error = err
+        );
+      }
+  
+      /** Form upload code end **/
 
 }

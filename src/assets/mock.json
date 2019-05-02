@@ -1,0 +1,8 @@
+[
+    { "id": 1, "tag": "Published", "make": "Toyota", "model": "Celica", "price": 35000 },
+    { "id": 2, "tag": "Published", "make": "Ford", "model": "Mondeo", "price": 32000 },
+    { "id": 3, "tag": "Published", "make": "Porsche", "model": "Boxter", "price": 72000 },
+    { "id": 4, "tag": "InProgress", "make": "InProcess-Audi", "model": "A9", "price": 69000 },
+    { "id": 5, "tag": "InProgress", "make": "InProcess-Jaguar", "model": "Jaguar XF", "price": 89000 },
+    { "id": 6, "tag": "Draft", "make": "Draft-Maruti Suzuki", "model": "Vitara Brezza", "price": 98000 }
+]

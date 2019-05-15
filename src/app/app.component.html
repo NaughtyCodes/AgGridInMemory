@@ -7,48 +7,25 @@
   </div>
 </div>
 <div class="container">
+  <app-custom-toolbar [gridOptions] = "gridOptions" [formTypes]="formTypes" > </app-custom-toolbar>
   <div class="row">
-    <div class="col-sm-1" style="padding-right:0px; padding-left:0px;">
-      <button type="button" (click)="addNewRow()" class="btn btn-primary"
-        style="padding:0px 14px 0px 14px;; margin:0px 5px 5px 0px;">+</button>
-      <button type="button" (click)="removeRows()" class="btn btn-primary"
-        style="padding:0px 16px 0px 16px; margin:0px 5px 5px 0px;">-</button>
-    </div>
-    <div class="col-sm-5">
-      <form>
-        <div class="form-group">
-          <input style="width:100%;" (keyup)="onFilterTextBoxChanged($event)" type="text" id="filter-text-box"
-            placeholder="Global Search in grid" />
-        </div>
-      </form>
-    </div>
-    <div class="col-sm-3">
-      <label for="sel1" style="float: right;">Select list (select one):</label>
-    </div>
-    <div class="col-sm-3" style="padding-right:0px; padding-left:0px; padding-bottom: 5px;">
-      <select (change)="applyTypeChange($event)" style="max-width: 100%;" class="form-control col-sm-3" id="formType"
-        name="formType">
-        <option *ngFor="let t of formTypes;" [selected]="selectedFormType == t" value="{{t}}">{{t}}</option>
-      </select>
-      <!-- [selected] = "selectedFormType" -->
-    </div>
-
-  </div>
-  <div class="row">
-    <ag-grid-angular style="width: 100%; height: 300px;" class="ag-theme-balham" [rowData]="rowData"
-      [columnDefs]="columnDefs" [rowSelection]="rowSelection" [suppressRowClickSelection]="false"
-      (rowDoubleClicked)="onSelectionChanged($event)" (gridReady)="onGridReady($event)" [editType]="editType">
+    <ag-grid-angular 
+      style="width: 100%; height: 300px;" 
+      class="ag-theme-balham" 
+      [gridOptions]="gridOptions"
+      [rowData]="rowData"
+      (rowDoubleClicked)="onSelectionChanged($event)" 
+      (gridReady)="onGridReady($event)">
     </ag-grid-angular>
   </div>
   <div class="row">
-    <button type="button" (click)="removeRows()" class="btn btn-primary"
-      style="padding:0px 14px 0px 14px;; margin:5px 5px 5px 0px;">Delete</button>
-    <!-- <button type="button" class="btn btn-primary" style="padding:0px 16px 0px 16px; margin:5px 5px 5px 0px;">Update</button> -->
+
   </div>
 
   <div class="row">
 
-    <!-- <h6>Upload a Document : </h6> -->
+<!-- 
+    <h6>Upload a Document : </h6> 
     <div>
       <div *ngIf="error">
         {{ error.message }}
@@ -72,7 +49,7 @@
 
       </form>
     </div>
-
+-->
   </div>
 </div>
 

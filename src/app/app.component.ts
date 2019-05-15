@@ -6,6 +6,7 @@ import { AppCommonService } from './app.common.service';
 import { FormObject } from './formObject';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { UploadService } from './upload.service';
+import { GridOptions } from "ag-grid-community";
 
 @Component({
   selector: 'app-root',
@@ -16,6 +17,7 @@ export class AppComponent implements OnInit {
 
   private gridApi: any;
   private gridColumnApi: any;
+  private gridOptions: GridOptions;
 
   private columnDefs: any;
   private defaultColDef: any;
@@ -27,6 +29,7 @@ export class AppComponent implements OnInit {
   private selectedFormType: any;
   private data: any[];
   private activeModalRef: NgbModalRef;
+  
 
   form: FormGroup;
   error: string;
@@ -37,7 +40,7 @@ export class AppComponent implements OnInit {
 
   private formObject: FormObject
 
-  title = 'BRAVO';
+  title = 'AG-Grid-InMemory';
   constructor(
     private modalService: NgbModal,
     private appCommonService: AppCommonService,
@@ -45,6 +48,7 @@ export class AppComponent implements OnInit {
     private uploadService: UploadService
   ) {
     //called first time before the ngOnInit()
+    this.gridOptions = <GridOptions>{};
   }
 
   ngOnInit() {
@@ -64,6 +68,7 @@ export class AppComponent implements OnInit {
     );
 
     this.form = this.formBuilder.group({
+      firstName: ['',],
       file: ['']
     });
 
@@ -77,21 +82,46 @@ export class AppComponent implements OnInit {
           case "SaveToDraft": {
             data['data'].tag = "Draft";
             console.log(data['data']);
-            data['data'].id === -1 ? this.data.push(data['data']) : console.log('Record saved to draft ...!');
-            this.rowData = this.data.filter(e => e.tag == 'Draft');
+
+            this.data.indexOf(data['data']) === -1 ? this.data.push(data['data']) : (this.data[this.data.indexOf(data['data'])] = data['data']);
             this.selectedFormType = data['data'].tag;
-            this.activeModalRef.close();
+            this.rowData = this.data.filter(e => e.tag == 'Draft');
+            this.appCommonService.submitFormData.next({"data":data['data'].tag,"key":"AfterSubmitApplyTypeChange"});
+
+            let formData = new FormData();
+            formData.append("data",data["data"]);
+            formData.append("file",data["file"]);
+            //do post call
+
+            this.modalService.dismissAll();
             break;
           }
           case "SubmitOrUpdate": {
             data['data'].tag = "Published";
             console.log(data['data']);
-            data['data'].id === -1 ? this.data.push(data['data']) : console.log('Record submit to table ...!');
-            this.rowData = this.data.filter(e => e.tag == 'Published');
+
+            this.data.indexOf(data['data']) === -1 ? this.data.push(data['data']) : (this.data[this.data.indexOf(data['data'])] = data['data']);
             this.selectedFormType = data['data'].tag;
-            this.activeModalRef.close();
+            this.rowData = this.data.filter(e => e.tag == 'Published');
+            this.appCommonService.submitFormData.next({"data":data['data'].tag,"key":"AfterSubmitApplyTypeChange"});
+            
+
+            let formData = new FormData();
+            formData.append("data",data["data"]);
+            formData.append("file",data["file"]);
+            //do post call
+
+            this.modalService.dismissAll();
             break;
           }
+          case "ApplyTypeChange": {
+            this.applyTypeChange(data['data']);
+            break;
+          }
+          case "RemoveRows": {
+            this.removeRows();
+            break;
+        }
           default: {
             break;
           }
@@ -109,15 +139,6 @@ export class AppComponent implements OnInit {
       "Draft"
     ];
 
-    // this.data = [
-    //   { id: 1, tag: 'Published', make: 'Toyota', model: 'Celica', price: 35000 },
-    //   { id: 2, tag: 'Published', make: 'Ford', model: 'Mondeo', price: 32000 },
-    //   { id: 3, tag: 'Published', make: 'Porsche', model: 'Boxter', price: 72000 },
-    //   { id: 4, tag: 'InProgress', make: 'InProcess-Audi', model: 'A9', price: 69000 },
-    //   { id: 5, tag: 'InProgress', make: 'InProcess-Jaguar', model: 'Jaguar XF', price: 89000 },
-    //   { id: 6, tag: 'Draft', make: 'Draft-Maruti Suzuki', model: 'Vitara Brezza', price: 98000 }
-    // ];
-
     this.columnDefs = [
       {
         headerName: 'Make', field: 'make',
@@ -129,14 +150,10 @@ export class AppComponent implements OnInit {
       { headerName: 'Price', field: 'price' }
     ];
 
-    // this.rowData = this.data.filter(e => e.tag == 'Published');
-    this.rowSelection = "multiple";
-    this.editType = "fullRow";
-  }
-
-  onFilterTextBoxChanged(event) {
-    console.log(event);
-    this.gridApi.setQuickFilter(event.target.value);
+    this.gridOptions.columnDefs = this.columnDefs;
+    this.gridOptions.rowSelection = "multiple";
+    this.gridOptions.editType = "fullRow";
+    this.gridOptions.suppressRowClickSelection = false;
   }
 
   applyTypeChange(event) {
@@ -169,28 +186,6 @@ export class AppComponent implements OnInit {
     this.activeModalRef = this.modalService.open(AppModalForm, { size: 'lg', backdrop: 'static' });
     this.formObject = selectedRows[0];
     this.activeModalRef.componentInstance.formObject = this.formObject;
-  }
-
-  addNewRow() {
-    this.activeModalRef = this.modalService.open(AppModalForm);
-    this.formObject = new FormObject();
-    this.formObject.setId(-1);
-    this.formObject.setTag('Draft');
-    this.formObject.setMake('');
-    this.formObject.setModel('');
-    this.formObject.setPrice('');
-    this.activeModalRef.componentInstance.formObject = this.formObject;
-  }
-
-  removeRows() {
-    var selectedRows = this.gridApi.getSelectedRows();
-
-    for (let i = 0; selectedRows.length > i; i++) {
-      this.data.splice(this.data.indexOf(selectedRows[i]), 1);
-      //this.data.filter(e => e.id == selectedRows[i].id).length > 0 ? this.data.splice(i,1) : console.log("Nothing record deleted..!");
-    }
-    this.rowData = this.data.filter(e => e.tag == this.selectedFormType);
-
   }
 
   onGridReady(params) {

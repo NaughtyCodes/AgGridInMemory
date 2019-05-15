@@ -11,12 +11,14 @@ import { AgGridModule } from 'ag-grid-angular';
 
 import { AppModalForm } from './app.modal.form';
 import { AppformsComponent } from './appforms/appforms.component';
+import { CustomToolbarComponent } from './custom-toolbar/custom-toolbar.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     AppModalForm,
-    AppformsComponent
+    AppformsComponent,
+    CustomToolbarComponent
   ],
   entryComponents: [AppModalForm],
   imports: [

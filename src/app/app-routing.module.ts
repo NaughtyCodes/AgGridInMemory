@@ -3,7 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { AppformsComponent } from './appforms/appforms.component';
 
 const routes: Routes = [
-  { path: '/app/forms', component: AppformsComponent }
+  { path: 'app/forms', component: AppformsComponent }
 ];
 
 @NgModule({
